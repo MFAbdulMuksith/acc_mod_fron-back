@@ -12,7 +12,7 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
+- stage: backBuild
   displayName: backend Build image
   jobs:
   - job: Build
@@ -27,7 +27,7 @@ stages:
         command: 'buildAndPush'
         Dockerfile: '**backend-acc/Dockerfile'
 
-- stage: Build
+- stage: frontBuild
   displayName: frontend Build image
   jobs:
   - job: Build
