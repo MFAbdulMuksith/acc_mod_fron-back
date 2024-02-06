@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: abdmuksith/accoun-module-front-img
+    container_name: accoun-module-front
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: abdmuksith/accoun-module-back-img
+    container_name: accoun-module-back
+    ports:
+      - "3001:3001"
+    environment: 
+      - .env
