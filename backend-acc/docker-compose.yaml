@@ -1,86 +1,86 @@
-version: '3.8'
-services:
-### MySQL Container
-  mysql:
-    image: abdmuksith/accounts.module.mysql-img
-    container_name: acc_mysql_container
-    ports:
-      - "${MYSQL_PORT}:3306"
+# version: '3.8'
+# services:
+# ### MySQL Container
+#   mysql:
+#     image: abdmuksith/accounts.module.mysql-img
+#     container_name: acc_mysql_container
+#     ports:
+#       - "${MYSQL_PORT}:3306"
 
-  backend:
-    image: abdmuksith/accoun-module-back-img
-    container_name: acc_backend_container
-    environment:
-      - DB_HOST=$DB_HOST
-      - MYSQL_DATABASE=$MYSQL_DATABASE
-      - MYSQL_USER=$MYSQL_USER
-      - MYSQL_PASSWORD=$MYSQL_PASSWORD
-      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
-    ports:
-      - "3001:3001"
-    depends_on:
-      - mysql
+#   backend:
+#     image: abdmuksith/accoun-module-back-img
+#     container_name: acc_backend_container
+#     environment:
+#       - DB_HOST=$DB_HOST
+#       - MYSQL_DATABASE=$MYSQL_DATABASE
+#       - MYSQL_USER=$MYSQL_USER
+#       - MYSQL_PASSWORD=$MYSQL_PASSWORD
+#       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+#     ports:
+#       - "3001:3001"
+#     depends_on:
+#       - mysql
 
-  frontend:
-    image: abdmuksith/accoun-module-front-img
-    container_name: acc_frontend_container
-    ports:
-      - "8080:80"
+#   frontend:
+#     image: abdmuksith/accoun-module-front-img
+#     container_name: acc_frontend_container
+#     ports:
+#       - "8080:80"
 
-#################
+# #################
 
-# Specify the version of docker-compose
-version: '3'
+# # Specify the version of docker-compose
+# version: '3'
 
-# Define the services
-services:
-  # Define the database service
-  db:
-    # Use the official MySQL 8 image as the base image
-    image: mysql:8
-    # Set the environment variables for the database
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mydb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: pass
-    # Expose port 3306 for the database
-    ports:
-      - "3306:3306"
-    # Use a named volume to persist the data
-    volumes:
-      - db-data:/var/lib/mysql
+# # Define the services
+# services:
+#   # Define the database service
+#   db:
+#     # Use the official MySQL 8 image as the base image
+#     image: mysql:8
+#     # Set the environment variables for the database
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root
+#       MYSQL_DATABASE: mydb
+#       MYSQL_USER: user
+#       MYSQL_PASSWORD: pass
+#     # Expose port 3306 for the database
+#     ports:
+#       - "3306:3306"
+#     # Use a named volume to persist the data
+#     volumes:
+#       - db-data:/var/lib/mysql
 
-  # Define the backend service
-  backend:
-    # Use the image that we built for the Node.js application
-    image: my-app:v1
-    # Set the environment variables for the backend
-    environment:
-      DB_HOST: db
-      DB_USER: user
-      DB_PASS: pass
-      DB_NAME: mydb
-      CLIENT_ORIGIN: http://localhost:3000
-    # Expose port 3001 for the backend
-    ports:
-      - "3001:3001"
-    # Link the backend service to the database service
-    depends_on:
-      - db
+#   # Define the backend service
+#   backend:
+#     # Use the image that we built for the Node.js application
+#     image: my-app:v1
+#     # Set the environment variables for the backend
+#     environment:
+#       DB_HOST: db
+#       DB_USER: user
+#       DB_PASS: pass
+#       DB_NAME: mydb
+#       CLIENT_ORIGIN: http://localhost:3000
+#     # Expose port 3001 for the backend
+#     ports:
+#       - "3001:3001"
+#     # Link the backend service to the database service
+#     depends_on:
+#       - db
 
-  # Define the frontend service
-  frontend:
-    # Use the image that we built for the React application
-    image: my-ui:v1
-    # Expose port 3000 for the frontend
-    ports:
-      - "3000:3000"
-    # Link the frontend service to the backend service
-    depends_on:
-      - backend
+#   # Define the frontend service
+#   frontend:
+#     # Use the image that we built for the React application
+#     image: my-ui:v1
+#     # Expose port 3000 for the frontend
+#     ports:
+#       - "3000:3000"
+#     # Link the frontend service to the backend service
+#     depends_on:
+#       - backend
 
-# Define the volumes
-volumes:
-  # Define a named volume for the database data
-  db-data:
+# # Define the volumes
+# volumes:
+#   # Define a named volume for the database data
+#   db-data:

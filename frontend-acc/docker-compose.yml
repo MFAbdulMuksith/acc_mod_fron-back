@@ -1,33 +1,61 @@
-version: '3'
+# version: '3.8'
+
+# services:
+#   frontend-acc:
+#     image: abdmuksith/accoun-module-front-img
+#     container_name: abdmuksith/accoun-module-front
+#     ports:
+#       - "8080:80"
+#     depends_on: 
+#     - backend-acc
+
+
+#   backend-acc:
+#     image: abdmuksith/accoun-module-back-img
+#     container_name: abdmuksith/accoun-module-back
+#     ports:
+#       - "3001:3001"
+
+#####################################
+version: '3.8'
 
 services:
-  frontend-acc:
-    build:
-      context: /frontend-acc  
-      dockerfile: ./Dockerfile
+  frontend:
+    image: abdmuksith/accoun-module-front-img
+    container_name: abdmuksith/accoun-module-front.container
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
-      - account-net
+      - app-network
+    depends_on:
+      - backend
 
-  backend-acc:
-    build:
-      context: /backend-acc
-      dockerfile: ./Dockerfile
+  backend:
+    image: abdmuksith/accoun-module-back-img
+    container_name: abdmuksith/accoun-module-back.container
     ports:
       - "3001:3001"
     networks:
-      - account-net
+      - app-network
+    environment: 
+      - .env
+      
+                
 
-  mysql-acc:
-    build:
-      context: /mysql-acc
-      dockerfile: ./Dockerfile
+  mysql:
+    image: mysql:latest
+    container_name: mysql.container
     ports:
       - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: Mysql@779860219
+      MYSQL_DATABASE: accounts_module_db
+    volumes:
+      - ./mysql-data:/var/lib/mysql
     networks:
-      - account-net
+      - app-network
 
 networks:
-  acc-net:
-    external: true
+  app-network:
+    driver: bridge
+
