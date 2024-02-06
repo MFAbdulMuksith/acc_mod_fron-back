@@ -1,0 +1,146 @@
+# MYSQL DATADASE commands
+
+mysql -u root -p 
+password
+
+SHOW DATABASES;
+
+CREATE DATABASE accounts_module_db;
+
+USE accounts_module_db;
+
+SHOW TABLES;
+
+DESCRIBE users;
+
+SELECT * FROM users;
+
+exit
+
+##########################################
+
+# vi accounts.front.opsdemo.xyz.conf
+# AWS EC2 ubuntu server nginx configuration for fronend container
+server {
+    listen 80;
+    server_name accounts.front.opsdemo.xyz;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+################################################
+
+# vi accounts.back.opsdemo.xyz.conf
+# AWS EC2 ubuntu server nginx configuration for backend container
+server {
+    listen 80;
+    server_name accounts.back.opsdemo.xyz;
+
+    location / {
+        proxy_pass http://localhost:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+############################################
+
+sudo nginx -t
+
+sudo ln -s /etc/nginx/sites-available/accounts.front.opsdemo.xyz.conf /etc/nginx/sites-enabled/
+
+sudo ln -s /etc/nginx/sites-available/accounts.back.opsdemo.xyz.conf /etc/nginx/sites-enabled/
+
+sudo systemctl restart nginx
+
+sudo apt install certbot python3-certbot-nginx
+
+sudo certbot --nginx -d accounts.front.opsdemo.xyz -d www.accounts.front.opsdemo.xyz
+
+sudo certbot --nginx -d accounts.back.opsdemo.xyz  -d www.accounts.back.opsdemo.xyz
+
+#############################################
+
+# Build front-end image
+docker build -t abdmuksith/accoun-module-front-img .
+
+# Build back-end image
+docker build -t abdmuksith/accoun-module-back-img .
+
+# Build MySQL image
+docker build -t abdmuksith/accounts.module.mysql-img .
+
+###############################################
+
+# Run front-end container
+docker run -itd -p 8080:80 --name accounts.front.opsdemo.xyz abdmuksith/accoun-module-front-img
+
+# Run back-end container
+docker run -itd -p 3001:3001 --name accounts.back.opsdemo.xyz abdmuksith/accoun-module-back-img
+
+# Run MySQL container
+docker run -itd -p 3306:3306 --name accounts.module.mysql abdmuksith/accounts.module.mysql-img
+
+################################################
+
+# Build and Run Docker Compose: Builds images and starts services in detached mode.
+docker-compose up
+docker-compose up -d
+
+# View Running Containers: Checks if containers are running.
+docker ps
+
+# Stop Docker Compose: Stops and removes containers from docker-compose.yml.
+docker-compose down
+
+# View Logs: Views logs of all services.
+docker-compose logs -f
+
+# Access MySQL Container: Accesses MySQL container bash.
+docker exec -it accounts.module.mysql bash
+
+# MySQL Command Line: Accesses MySQL command line inside the container. Enter password when prompted.
+mysql -uroot -p
+
+# Rebuild and Force Recreate: Rebuilds images and force recreates containers.
+docker-compose up -d --build --force-recreate
+
+############################################
+
+https://accounts.front.opsdemo.xyz/
+https://accounts.back.opsdemo.xyz/
+
+#############################################
+
+# When Dockerfile name is DIff
+
+docker build -t accounts.front.opsdemo.xyz -f ./path//Dockerfile.front .
+
+docker run -d -p 8080:80 --name accounts.front.opsdemo.xyz accounts.front.opsdemo.xyz
+
+docker build -t accounts.back.opsdemo.xyz -f ./path//Dockerfile.back .
+
+docker run -d -p 3001:3001 --name accounts.back.opsdemo.xyz accounts.back.opsdemo.xyz
+
+docker build -t accounts.module.mysql -f ./path/Dockerfile.mysql .
+
+docker run -d -p 3306:3306 --name accounts.module.mysql accounts.module.mysql
+
+######################################################
+
+# mysql://<username>:<password>@<host>:<port>/<database_name>
+mysql://abdulmuksith:779860219@localhost:3306/accounts_module_db
+
+2024-01-29 11:46:47 Database connection failed:  Error: connect ECONNREFUSED 127.0.0.1:3306
+2024-01-29 11:46:47     at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1159:16)
+
+
+      
