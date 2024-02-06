@@ -22,40 +22,16 @@ version: '3.8'
 services:
   frontend:
     image: abdmuksith/accoun-module-front-img
-    container_name: abdmuksith/accoun-module-front.container
+    container_name: accoun-module-front
     ports:
       - "8080:80"
-    networks:
-      - app-network
     depends_on:
       - backend
 
   backend:
     image: abdmuksith/accoun-module-back-img
-    container_name: abdmuksith/accoun-module-back.container
+    container_name: accoun-module-back
     ports:
       - "3001:3001"
-    networks:
-      - app-network
     environment: 
       - .env
-      
-                
-
-  mysql:
-    image: mysql:latest
-    container_name: mysql.container
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: Mysql@779860219
-      MYSQL_DATABASE: accounts_module_db
-    volumes:
-      - ./mysql-data:/var/lib/mysql
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-
