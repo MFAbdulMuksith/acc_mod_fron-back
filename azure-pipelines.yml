@@ -4,23 +4,24 @@
 
 trigger:
   - main
-  
+
 resources:
   - repo: self
-  
+
 variables:
-    tag: '$(Build.BuildId)'
-  
+  tag: '$(Build.BuildId)'
+
 ###################################
 # BACKEND
 ###################################
-  
+
 stages:
   - stage: backBuild
-    displayName: backend Build image
+    displayName: Backend Build Image
     jobs:
-    - job: Build
-      displayName: Build
+
+    - job: BuildBackend
+      displayName: Build Backend
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -31,27 +32,20 @@ stages:
           command: 'buildAndPush'
           Dockerfile: '**backend-acc/Dockerfile'
           tags: '$(tag)'
-  
-  - stage: stopAndDeleteBackendContainers
-    displayName: Stop and Delete backend Containers
-    jobs:
+
     - job: StopAndDeleteBackend
-      displayName: Stop and Delete backend Containers
+      displayName: Stop and Delete Backend Containers
       pool:
         name: my_azure_vm_agent
       steps:
       - script: |
           pwd
           ls -lart
+          docker stop acc_backend_container || true
+          docker rm acc_backend_container || true
           docker ps -a
-          docker stop abdmuksith/backend_azure_pipeline:$(tag)
-          docker rm abdmuksith/backend_azure_pipeline:$(tag)
-        displayName: 'Stop and Delete Containers backend containers'
-  
-  - stage: deployBackendContainers
-    displayName: Deploy Backend Containers
-    dependsOn: stopAndDeleteBackendContainers
-    jobs:
+        displayName: 'Stop and Delete Containers for Backend'
+
     - job: RunBackendContainers
       displayName: Run Docker Backend Containers
       pool:
@@ -60,21 +54,22 @@ stages:
       - script: |
           docker pull abdmuksith/backend_azure_pipeline:$(tag)
         displayName: 'Pull Last Build Backend Images'
-  
+
       - script: |
           docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
-          docker ps
+          docker image prune
+          docker images -a
         displayName: 'Run Docker Backend Containers https://accounts.back.opsdemo.xyz/'
-  
+
 ##############################
 # FRONTEND
 ##############################
-  
+
   - stage: frontBuild
-    displayName: frontend Build image
+    displayName: Frontend Build Image
     jobs:
-    - job: Build
-      displayName: Build
+    - job: BuildFrontend
+      displayName: Build Frontend
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -85,27 +80,20 @@ stages:
           command: 'buildAndPush'
           Dockerfile: '**frontend-acc/Dockerfile'
           tags: '$(tag)'
-  
-  - stage: stopAndDeleteFrontendContainers
-    displayName: Stop and Delete forntend Containers
-    jobs:
-    - job: StopAndDeleteForntend
-      displayName: Stop and Delete forntend Containers
+
+    - job: StopAndDeleteFrontend
+      displayName: Stop and Delete Frontend Containers
       pool:
         name: my_azure_vm_agent
       steps:
       - script: |
           pwd
           ls -lart
+          docker stop acc_frontend_container || true
+          docker rm acc_frontend_container || true
           docker ps -a
-          docker stop abdmuksith/frontend_azure_pipeline:$(tag)
-          docker rm abdmuksith/frontend_azure_pipeline:$(tag)
-        displayName: 'Stop and Delete forntend Containers'
-  
-  - stage: deployFrontendContainers
-    displayName: Deploy Frontend Containers
-    dependsOn: stopAndDeleteFrontendContainers
-    jobs:
+        displayName: 'Stop and Delete Containers for Frontend'
+
     - job: RunFrontendContainers
       displayName: Run Docker Frontend Containers
       pool:
@@ -114,8 +102,9 @@ stages:
       - script: |
           docker pull abdmuksith/frontend_azure_pipeline:$(tag)
         displayName: 'Pull Last Build Frontend Images'
-  
+
       - script: |
           docker run -d --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
-          docker ps
+          docker image prune
+          docker images -a
         displayName: 'Run Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
