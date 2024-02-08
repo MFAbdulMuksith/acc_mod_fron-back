@@ -61,7 +61,7 @@ stages:
       displayName: 'Pull Last Build Backend Images'
 
     - script: |
-        docker run -d --name backend_container -p 8080:8080 abdmuksith/backend_azure_pipeline:$(tag)
+        docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
         echo "https://accounts.back.opsdemo.xyz/"
       displayName: 'Run Docker Backend Containers'
 
@@ -114,6 +114,6 @@ stages:
       displayName: 'Pull Last Build Frontend Images'
 
     - script: |
-        docker run -d --name frontend_container -p 80:80 abdmuksith/frontend_azure_pipeline:$(tag)
+        docker run -d --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
         echo "https://accounts.front.opsdemo.xyz/"
       displayName: 'Run Docker Frontend Containers'
