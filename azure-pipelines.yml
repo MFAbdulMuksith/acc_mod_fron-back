@@ -42,15 +42,19 @@ stages:
           Dockerfile: '**frontend-acc/Dockerfile'
           tags: '$(tag)'
 
-############
-# FRONTEND
-############
+####################
+# SELF HOSTED AGENT
+####################
 
   - stage: PullandRun
-    displayName: PullandRun Image
+    displayName: PullandRun DockerImages
 
     pool:
       name: my_azure_vm_agent
+
+############
+# FRONTEND
+############
 
     jobs:
     - job: StopAndDeleteFrontend
