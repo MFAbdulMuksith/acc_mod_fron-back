@@ -3,7 +3,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-  - main
+  branches:
+    include:
+      - main
 
 resources:
   - repo: self
@@ -11,17 +13,17 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
 
-###################################
-# BACKEND
-###################################
+###############################
+# Build and Push to Docker hub
+###############################
 
 stages:
-  - stage: backBuild
-    displayName: Backend Build Image
+  - stage: BuildandPush
+    displayName: BuildandPush Image
     jobs:
 
-    - job: BuildBackend
-      displayName: Build Backend
+    - job: BuildandPush
+      displayName: BuildandPush
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -33,46 +35,6 @@ stages:
           Dockerfile: '**backend-acc/Dockerfile'
           tags: '$(tag)'
 
-    - job: StopAndDeleteBackend
-      displayName: Stop and Delete Backend Containers
-      pool:
-        name: my_azure_vm_agent
-      steps:
-      - script: |
-          pwd
-          ls -lart
-          docker stop acc_backend_container || true
-          docker rm acc_backend_container || true
-          docker ps -a
-        displayName: 'Stop and Delete Containers for Backend'
-
-    - job: RunBackendContainers
-      displayName: Run Docker Backend Containers
-      pool:
-        name: my_azure_vm_agent
-      steps:
-      - script: |
-          docker pull abdmuksith/backend_azure_pipeline:$(tag)
-        displayName: 'Pull Last Build Backend Images'
-
-      - script: |
-          docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
-          docker image prune
-          docker images -a
-        displayName: 'Run Docker Backend Containers https://accounts.back.opsdemo.xyz/'
-
-##############################
-# FRONTEND
-##############################
-
-  - stage: frontBuild
-    displayName: Frontend Build Image
-    jobs:
-    - job: BuildFrontend
-      displayName: Build Frontend
-      pool:
-        vmImage: ubuntu-latest
-      steps:
       - task: Docker@2
         inputs:
           containerRegistry: 'docker_hub_registry'
@@ -81,24 +43,28 @@ stages:
           Dockerfile: '**frontend-acc/Dockerfile'
           tags: '$(tag)'
 
+############
+# FRONTEND
+############
+
+  - stage: PullandRun
+    displayName: PullandRun Image
+
+    pool:
+      name: my_azure_vm_agent
+
+    jobs:
     - job: StopAndDeleteFrontend
       displayName: Stop and Delete Frontend Containers
-      pool:
-        name: my_azure_vm_agent
       steps:
       - script: |
           pwd
           ls -lart
-          docker stop acc_frontend_container || true
-          docker rm acc_frontend_container || true
+          docker stop acc_frontend_container
+          docker rm acc_frontend_container
           docker ps -a
         displayName: 'Stop and Delete Containers for Frontend'
 
-    - job: RunFrontendContainers
-      displayName: Run Docker Frontend Containers
-      pool:
-        name: my_azure_vm_agent
-      steps:
       - script: |
           docker pull abdmuksith/frontend_azure_pipeline:$(tag)
         displayName: 'Pull Last Build Frontend Images'
@@ -108,3 +74,28 @@ stages:
           docker image prune
           docker images -a
         displayName: 'Run Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
+
+############
+# BACKEND
+############
+
+    - job: StopAndDeleteBackend
+      displayName: Stop and Delete Backend Containers
+      steps:
+      - script: |
+          pwd
+          ls -lart
+          docker stop acc_backend_container
+          docker rm acc_backend_container
+          docker ps -a
+        displayName: 'Stop and Delete Containers for Backend'
+
+      - script: |
+          docker pull abdmuksith/backend_azure_pipeline:$(tag)
+        displayName: 'Pull Last Build Backend Images'
+
+      - script: |
+          docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
+          docker image prune
+          docker images -a
+        displayName: 'Run Docker Backend Containers https://accounts.back.opsdemo.xyz/'
