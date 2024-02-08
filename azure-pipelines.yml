@@ -41,6 +41,8 @@ stages:
       vmImage: my_azure_vm_agent
     steps:
     - script: |
+        pwd
+        ls -lart
         docker stop $(docker ps -a --filter ancestor=abdmuksith/backend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
         docker rm $(docker ps -a --filter ancestor=abdmuksith/backend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
       displayName: 'Stop and Delete Containers backend containers'
@@ -60,6 +62,7 @@ stages:
 
     - script: |
         docker run -d --name backend_container -p 8080:8080 abdmuksith/backend_azure_pipeline:$(tag)
+        echo "https://accounts.back.opsdemo.xyz/"
       displayName: 'Run Docker Backend Containers'
 
 ##############################
@@ -91,6 +94,8 @@ stages:
       vmImage: my_azure_vm_agent
     steps:
     - script: |
+        pwd
+        ls -lart
         docker stop $(docker ps -a --filter ancestor=abdmuksith/frontend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
         docker rm $(docker ps -a --filter ancestor=abdmuksith/frontend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
       displayName: 'Stop and Delete forntend Containers'
@@ -110,4 +115,5 @@ stages:
 
     - script: |
         docker run -d --name frontend_container -p 80:80 abdmuksith/frontend_azure_pipeline:$(tag)
+        echo "https://accounts.front.opsdemo.xyz/"
       displayName: 'Run Docker Frontend Containers'
