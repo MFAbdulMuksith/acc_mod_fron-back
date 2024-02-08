@@ -28,6 +28,36 @@ stages:
         Dockerfile: '**backend-acc/Dockerfile'
         tags: '$(Build.BuildId)'
 
+- stage: stopAndDeleteBackendContainers
+  displayName: Stop and Delete backend Containers
+  jobs:
+  - job: StopAndDeleteBackend
+    displayName: Stop and Delete backend Containers
+    pool:
+      vmImage: my_azure_vm_agent
+    steps:
+    - script: |
+        docker stop $(docker ps -a --filter ancestor=abdmuksith/backend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
+        docker rm $(docker ps -a --filter ancestor=abdmuksith/backend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
+      displayName: 'Stop and Delete Containers backend containers'
+
+- stage: deployBackendContainers
+  displayName: Deploy Backend Containers
+  dependsOn: stopAndDeleteBackendContainers
+  jobs:
+  - job: RunBackendContainers
+    displayName: Run Docker Backend Containers
+    pool:
+      vmImage: my_azure_vm_agent
+    steps:
+    - script: |
+        docker pull abdmuksith/backend_azure_pipeline:$(tag)
+      displayName: 'Pull Last Build Backend Images'
+
+    - script: |
+        docker run -d --name backend_container -p 8080:8080 abdmuksith/backend_azure_pipeline:$(tag)
+      displayName: 'Run Docker Backend Containers'
+
 - stage: frontBuild
   displayName: frontend Build image
   jobs:
@@ -43,3 +73,37 @@ stages:
         command: 'buildAndPush'
         Dockerfile: '**frontend-acc/Dockerfile'
         tags: '$(Build.BuildId)'
+
+- stage: stopAndDeleteFrontendContainers
+  displayName: Stop and Delete forntend Containers
+  jobs:
+  - job: StopAndDeleteForntend
+    displayName: Stop and Delete forntend Containers
+    pool:
+      vmImage: my_azure_vm_agent
+    steps:
+    - script: |
+        docker stop $(docker ps -a --filter ancestor=abdmuksith/frontend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
+        docker rm $(docker ps -a --filter ancestor=abdmuksith/frontend_azure_pipeline --filter "label=buildid<$(Build.BuildId)" -q) || true
+      displayName: 'Stop and Delete forntend Containers'
+
+- stage: deployFrontendContainers
+  displayName: Deploy Frontend Containers
+  dependsOn: stopAndDeleteFrontendContainers
+  jobs:
+  - job: RunFrontendContainers
+    displayName: Run Docker Frontend Containers
+    pool:
+      vmImage: my_azure_vm_agent
+    steps:
+    - script: |
+        docker pull abdmuksith/frontend_azure_pipeline:$(tag)
+      displayName: 'Pull Last Build Frontend Images'
+
+    - script: |
+        docker run -d --name frontend_container -p 80:80 abdmuksith/frontend_azure_pipeline:$(tag)
+      displayName: 'Run Docker Frontend Containers'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'docker_hub_registry'
+    command: 'login'
