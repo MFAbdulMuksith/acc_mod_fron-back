@@ -34,7 +34,6 @@ stages:
           command: 'buildAndPush'
           Dockerfile: '**backend-acc/Dockerfile'
           tags: '$(tag)'
-
       - task: Docker@2
         inputs:
           containerRegistry: 'docker_hub_registry'
@@ -63,17 +62,11 @@ stages:
           docker stop acc_frontend_container
           docker rm acc_frontend_container
           docker ps -a
-        displayName: 'Stop and Delete Containers for Frontend'
-
-      - script: |
           docker pull abdmuksith/frontend_azure_pipeline:$(tag)
-        displayName: 'Pull Last Build Frontend Images'
-
-      - script: |
           docker run -d --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
-          docker image prune
+          docker image prune -f
           docker images -a
-        displayName: 'Run Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
+          echo 'check Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
 
 ############
 # BACKEND
@@ -88,14 +81,8 @@ stages:
           docker stop acc_backend_container
           docker rm acc_backend_container
           docker ps -a
-        displayName: 'Stop and Delete Containers for Backend'
-
-      - script: |
           docker pull abdmuksith/backend_azure_pipeline:$(tag)
-        displayName: 'Pull Last Build Backend Images'
-
-      - script: |
           docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
-          docker image prune
+          docker image prune -f
           docker images -a
-        displayName: 'Run Docker Backend Containers https://accounts.back.opsdemo.xyz/'
+          echo 'chek Docker Backend Containers https://accounts.back.opsdemo.xyz/'
