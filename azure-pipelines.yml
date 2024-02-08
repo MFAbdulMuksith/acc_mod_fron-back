@@ -38,7 +38,7 @@ stages:
   - job: StopAndDeleteBackend
     displayName: Stop and Delete backend Containers
     pool:
-      vmImage: my_azure_vm_agent
+      name: my_azure_vm_agent
     steps:
     - script: |
         pwd
@@ -54,7 +54,7 @@ stages:
   - job: RunBackendContainers
     displayName: Run Docker Backend Containers
     pool:
-      vmImage: my_azure_vm_agent
+      name: my_azure_vm_agent
     steps:
     - script: |
         docker pull abdmuksith/backend_azure_pipeline:$(tag)
@@ -91,7 +91,7 @@ stages:
   - job: StopAndDeleteForntend
     displayName: Stop and Delete forntend Containers
     pool:
-      vmImage: my_azure_vm_agent
+      name: my_azure_vm_agent
     steps:
     - script: |
         pwd
@@ -107,7 +107,7 @@ stages:
   - job: RunFrontendContainers
     displayName: Run Docker Frontend Containers
     pool:
-      vmImage: my_azure_vm_agent
+      name: my_azure_vm_agent
     steps:
     - script: |
         docker pull abdmuksith/frontend_azure_pipeline:$(tag)
