@@ -11,9 +11,9 @@ resources:
 variables:
   dockerImageTag: '$(Build.BuildId)'
 
-#############################################
-# Azure DevOps Build and Push to Docker Hub
-#############################################
+################################################
+# Azure DevOps Build and Push to Docker Hub CI #
+################################################
 
 stages:
   - stage: BuildAndPushDockerImages
@@ -45,18 +45,18 @@ stages:
           Dockerfile: '**frontend-acc/Dockerfile'
           tags: '$(dockerImageTag)'
 
-####################
-# Self-hosted Agent
-####################
+########################
+# Self-hosted Agent CD #
+########################
 
   - stage: PullAndRunDockerImages
     displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
       name: my_azure_vm_agent
 
-############
+###########
 # Frontend
-############
+###########
 
     jobs:
     - job: ManageFrontendContainers
@@ -68,9 +68,9 @@ stages:
           docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
           docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
 
-############
+###########
 # Backend
-############
+###########
 
     - job: ManageBackendContainers
       displayName: 'Manage Backend Containers'
@@ -80,8 +80,12 @@ stages:
             docker rm -f acc_backend_container
             docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
+            echo 'currently available and runing containers'
             docker ps -a
-            docker image prunem -a -f
+            echo 'removeing all unused images'
+            docker image prune -a -f
+            echo 'listing all available docker images'
             docker images -a
-            echo 'Check Docker Backend Containers at https://accounts.back.opsdemo.xyz/'
-            echo 'Check Docker Frontend Containers at https://accounts.front.opsdemo.xyz/'
+            echo 'Docker Backend Containers URL https://accounts.back.opsdemo.xyz/'
+            echo 'Docker Frontend Containers URL https://accounts.front.opsdemo.xyz/'
+            echo 'Done CD process'
