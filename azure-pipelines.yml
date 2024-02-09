@@ -3,9 +3,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-  branches:
-    include:
-      - main
+ - main
 
 resources:
   - repo: self
@@ -83,7 +81,7 @@ stages:
             docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker ps -a
-            docker image prune -f
+            docker image prunem -a -f
             docker images -a
             echo 'Check Docker Backend Containers at https://accounts.back.opsdemo.xyz/'
             echo 'Check Docker Frontend Containers at https://accounts.front.opsdemo.xyz/'
