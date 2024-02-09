@@ -8,6 +8,8 @@ WORKDIR /app
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
+RUN npm install -g nodemon
+
 # Install app dependencies
 RUN npm install
 
