@@ -81,12 +81,12 @@ stages:
             docker rm -f acc_backend_container
             docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
-            echo '### currently available and runing containers'
-            docker ps -a
             echo '### removeing all unused images'
             docker image prune -a -f
             echo '### listing all available docker images'
             docker images -a
+            echo '### currently available and runing containers'
+            docker ps -a
             echo '### Docker Backend Containers URL https://accounts.back.opsdemo.xyz/'
             echo '### Docker Frontend Containers URL https://accounts.front.opsdemo.xyz/'
             echo '### Done CD process'
