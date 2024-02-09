@@ -11,19 +11,18 @@ resources:
   - repo: self
 
 variables:
-  tag: '$(Build.BuildId)'
+  dockerImageTag: '$(Build.BuildId)'
 
 #############################################
-# Azure Runners Build and Push to Docker hub
+# Azure DevOps Build and Push to Docker Hub
 #############################################
 
 stages:
-  - stage: BuildandPush
-    displayName: BuildandPush Image
+  - stage: BuildAndPushDockerImages
+    displayName: 'Build and Push Docker Images to Registry'
     jobs:
-
-    - job: BuildandPush
-      displayName: BuildandPush
+    - job: BuildAndPushBackend
+      displayName: 'Build and Push Backend Docker Image'
       pool:
         vmImage: ubuntu-latest
       steps:
@@ -33,55 +32,58 @@ stages:
           repository: 'abdmuksith/backend_azure_pipeline'
           command: 'buildAndPush'
           Dockerfile: '**backend-acc/Dockerfile'
-          tags: '$(tag)'
+          tags: '$(dockerImageTag)'
+
+    - job: BuildAndPushFrontend
+      displayName: 'Build and Push Frontend Docker Image'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
       - task: Docker@2
         inputs:
           containerRegistry: 'docker_hub_registry'
           repository: 'abdmuksith/frontend_azure_pipeline'
           command: 'buildAndPush'
           Dockerfile: '**frontend-acc/Dockerfile'
-          tags: '$(tag)'
+          tags: '$(dockerImageTag)'
 
 ####################
-# SELF HOSTED AGENT
+# Self-hosted Agent
 ####################
 
-  - stage: PullandRun
-    displayName: PullandRun DockerImages
-
+  - stage: PullAndRunDockerImages
+    displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
       name: my_azure_vm_agent
 
 ############
-# FRONTEND
+# Frontend
 ############
 
     jobs:
-    - job: StopAndDeleteFrontend
-      displayName: Stop and Delete Frontend Containers
+    - job: ManageFrontendContainers
+      displayName: 'Manage Frontend Containers'
       steps:
       - script: |
-          pwd
-          ls -lart
-          docker stop acc_frontend_container
-          docker rm -f acc_frontend_container
-          docker pull abdmuksith/frontend_azure_pipeline:$(tag)
-          docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
-          echo 'check Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
+          docker stop acc_frontend_container || true
+          docker rm -f acc_frontend_container || true
+          docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
+          docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
 
 ############
-# BACKEND
+# Backend
 ############
 
-    - job: StopAndDeleteBackend
-      displayName: Stop and Delete Backend Containers
+    - job: ManageBackendContainers
+      displayName: 'Manage Backend Containers'
       steps:
       - script: |
-          docker stop acc_backend_container
-          docker rm -f acc_backend_container
-          docker pull abdmuksith/backend_azure_pipeline:$(tag)
-          docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
-          docker ps -a
-          docker image prune -f
-          docker images -a
-          echo 'chek Docker Backend Containers https://accounts.back.opsdemo.xyz/'
+            docker stop acc_backend_container || true
+            docker rm -f acc_backend_container || true
+            docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
+            docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
+            docker ps -a
+            docker image prune -f
+            docker images -a
+            echo 'Check Docker Backend Containers at https://accounts.back.opsdemo.xyz/'
+            echo 'Check Docker Frontend Containers at https://accounts.front.opsdemo.xyz/'
