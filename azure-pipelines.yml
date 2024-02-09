@@ -65,8 +65,8 @@ stages:
       displayName: 'Manage Frontend Containers'
       steps:
       - script: |
-          docker stop acc_frontend_container || true
-          docker rm -f acc_frontend_container || true
+          docker stop acc_frontend_container
+          docker rm -f acc_frontend_container
           docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
           docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
 
@@ -78,8 +78,8 @@ stages:
       displayName: 'Manage Backend Containers'
       steps:
       - script: |
-            docker stop acc_backend_container || true
-            docker rm -f acc_backend_container || true
+            docker stop acc_backend_container
+            docker rm -f acc_backend_container
             docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
             docker ps -a
