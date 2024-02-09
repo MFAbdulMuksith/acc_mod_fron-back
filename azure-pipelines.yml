@@ -64,10 +64,10 @@ stages:
           pwd
           ls -lart
           docker stop acc_frontend_container
-          docker rm acc_frontend_container
+          docker rm -f acc_frontend_container
           docker ps -a
           docker pull abdmuksith/frontend_azure_pipeline:$(tag)
-          docker run -d --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
+          docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(tag)
           docker image prune -f
           docker images -a
           echo 'check Docker Frontend Containers https://accounts.front.opsdemo.xyz/'
@@ -80,13 +80,11 @@ stages:
       displayName: Stop and Delete Backend Containers
       steps:
       - script: |
-          pwd
-          ls -lart
           docker stop acc_backend_container
-          docker rm acc_backend_container
+          docker rm -f acc_backend_container
           docker ps -a
           docker pull abdmuksith/backend_azure_pipeline:$(tag)
-          docker run -d --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
+          docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(tag)
           docker image prune -f
           docker images -a
           echo 'chek Docker Backend Containers https://accounts.back.opsdemo.xyz/'
