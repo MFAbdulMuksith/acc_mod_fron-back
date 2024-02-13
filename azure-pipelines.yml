@@ -52,22 +52,26 @@ stages:
   - stage: PullAndRunDockerImages
     displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
-      name: my_azure_vm_agent
+     name: my_azure_vm_agent
 
 ###########
 # Frontend
 ###########
   
     jobs:
-    - job: ManageFrontendContainers
+    - deployment: ManageFrontendContainers
       displayName: 'Manage Frontend Containers'
-      steps:
-      - script: |
-          echo '### starting CD process'
-          docker stop acc_frontend_container
-          docker rm -f acc_frontend_container
-          docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
-          docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
+      environment: "production environment"
+      strategy:
+        runOnce:
+         deploy:
+           steps:
+            - script: |
+                echo '### starting CD process'
+                docker stop acc_frontend_container
+                docker rm -f acc_frontend_container
+                docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
+                docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
 
 ###########
 # Backend
