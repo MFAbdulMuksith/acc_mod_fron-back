@@ -2,95 +2,104 @@
 # Build a Docker image
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
+name: 'Accounts Modules Production Pipeline'
+
 trigger:
- - main
+  branches:
+    include:
+      - main
 
 resources:
   - repo: self
 
 variables:
-  dockerImageTag: '$(Build.BuildId)'
+  # containerRegistry: 'docker_registry_service_connection'
+  # dockerHubAccount: 'abdmuksith'
+  # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3pvfi"
+  # frontImage: 'frontend_azure_pipeline'
+  # backImage: 'backend_azure_pipeline'
+  # dockerComposeFile: './docker-compose.image.yaml'
+  frontRepository: 'abdmuksith/frontend_azure_pipeline'
+  backRepository: 'abdmuksith/backend_azure_pipeline'
+  azureAgent: 'ubuntu-latest'
+  environment: 'production'
+  selfHostedAgent: 'my_azure_vm_agent' 
+  frontServerPort: '8080'
+  backServerPort: '3001'
+  frontDockerfile: 'frontend-acc/Dockerfile'
+  backDockerfile: 'backend-acc/Dockerfile'
+  frontURL: 'https://accounts.front.opsdemo.xyz/'
+  backURL: 'https://accounts.back.opsdemo.xyz/'
+  frontTag: 'front$(Build.BuildId)'
+  backTag: 'back$(Build.BuildId)'
+  frontContainerName: 'acc_frontend_container'
+  backContainerName: 'acc_backend_container'
+  dockerRunOptions: '-itd'
 
-################################################
-# Azure DevOps Build and Push to Docker Hub CI #
-################################################
 
 stages:
-  - stage: BuildAndPushDockerImages
-    displayName: 'Build and Push Docker Images to Registry'
+  - stage: BuildAndPush
+    displayName: 'Build and Push Docker Images  on Azure runners Agent'
     jobs:
-    - job: BuildAndPushBackend
-      displayName: 'Build and Push Backend Docker Image'
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: Docker@2
-        inputs:
-          containerRegistry: 'docker_hub_registry'
-          repository: 'abdmuksith/backend_azure_pipeline'
-          command: 'buildAndPush'
-          Dockerfile: '**backend-acc/Dockerfile'
-          tags: '$(dockerImageTag)'
+      - job: BuildAndPush
+        displayName: 'Build and Push'
+        pool:
+          vmImage: $(azureAgent)
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: '$(containerRegistry)'
+              repository: '$(backRepository)'
+              command: 'buildAndPush'
+              Dockerfile: '$(backDockerfile)'
+              tags: '$(backTag)'
 
-    - job: BuildAndPushFrontend
-      displayName: 'Build and Push Frontend Docker Image'
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-      - task: Docker@2
-        inputs:
-          containerRegistry: 'docker_hub_registry'
-          repository: 'abdmuksith/frontend_azure_pipeline'
-          command: 'buildAndPush'
-          Dockerfile: '**frontend-acc/Dockerfile'
-          tags: '$(dockerImageTag)'
-
-########################
-# Self-hosted Agent CD #
-########################
+          - task: Docker@2
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(frontRepository):$(frontTag)
+              command: 'buildAndPush'
+              Dockerfile: $(frontDockerfile)
+              tags: '$(frontTag)'
 
   - stage: PullAndRunDockerImages
     displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
-     name: my_azure_vm_agent
-
-###########
-# Frontend
-###########
-  
+      name: $(selfHostedAgent)
     jobs:
-    - deployment: ManageFrontendContainers
-      displayName: 'Manage Frontend Containers'
-      environment: "production environment"
-      strategy:
-        runOnce:
-         deploy:
-           steps:
-            - script: |
-                echo '### starting CD process'
-                docker stop acc_frontend_container
-                docker rm -f acc_frontend_container
-                docker pull abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
-                docker run -itd --name acc_frontend_container -p 8080:80 abdmuksith/frontend_azure_pipeline:$(dockerImageTag)
+      - deployment: DeployBackend
+        environment: $(environment)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: |
+                    docker stop $(backContainerName)
+                    docker rm $(backContainerName)
+                    docker pull $(dockerHubAccount)/$(backRepository):$(backTag)
+                    docker run $(dockerRunOptions) --name $(backContainerName) -p $(backServerPort):3001 $(backRepository):$(backTag)
+                    echo '### Backend container started:'
+                    echo '### Check Docker Backend Container Domain URL $(backURL)'
 
-###########
-# Backend
-###########
-
-    - job: ManageBackendContainers
-      displayName: 'Manage Backend Containers'
-      steps:
-      - script: |
-            docker stop acc_backend_container
-            docker rm -f acc_backend_container
-            docker pull abdmuksith/backend_azure_pipeline:$(dockerImageTag)
-            docker run -itd --name acc_backend_container -p 3001:3001 abdmuksith/backend_azure_pipeline:$(dockerImageTag)
-            echo '### removeing all unused images'
-            docker image prune -a -f
-            echo '### listing all available docker images'
-            docker images -a
-            echo '### currently available and runing containers'
-            docker ps -a
-            echo '### Docker Backend Containers URL https://accounts.back.opsdemo.xyz/'
-            echo '### Docker Frontend Containers URL https://accounts.front.opsdemo.xyz/'
-            echo '### Done CD process'
+      - deployment: DeployFrontend
+        environment: $(environment)
+        dependsOn:: DeployBackend
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: |
+                    echo '### Starting CD process'
+                    docker stop $(frontContainerName)
+                    docker rm -f $(frontContainerName)
+                    docker pull $(frontRepository):$(frontTag)
+                    docker run $(dockerRunOptions) --name $(frontContainerName) -p $(frontServerPort):80 $(frontRepository):$(frontTag)
+                    echo '### Frontend container started:'
+                    echo '### Currently available and running containers'
+                    docker ps -a
+                    echo '### Removing all unused images'
+                    docker image prune -a -f
+                    echo '### Listing all available docker images'
+                    docker images -a
+                    echo '### Check Docker Frontend Container Domain URL $(frontURL)'
+                    echo '### Done CD process'
