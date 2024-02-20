@@ -56,15 +56,15 @@ stages:
               repository: '$(backRepository)'
               command: 'buildAndPush'
               Dockerfile: '$(backDockerfile)'
-              tags: '$(backTag)'
+              tags: '$(backDockerfile):$(backTag)'
 
           - task: Docker@2
             inputs:
               containerRegistry: 'docker_hub_registry'
-              repository: '$(frontRepository):$(frontTag)'
+              repository: '$(frontRepository)'
               command: 'buildAndPush'
               Dockerfile: '$(frontDockerfile)'
-              tags: '$(frontTag)'
+              tags: '$(frontDockerfile):$(frontTag)'
 
 ########################
 # Self-hosted Agent CD #
