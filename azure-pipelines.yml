@@ -1,6 +1,7 @@
 # Docker
 # Build a Docker image
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+# in This pipeline deploying containers with script bash commands
 
 name: 'Accounts Modules Production Pipeline'
 
@@ -86,13 +87,15 @@ stages:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    docker stop $(backContainerName)
-                    docker rm $(backContainerName)
-                    docker pull $(dockerHubAccount)/$(backRepository):$(backTag)
-                    docker run $(dockerRunOptions) --name $(backContainerName) -p $(backServerPort):3001 $(backRepository):$(backTag)
-                    echo '### Backend container started:'
-                    echo '### Check Docker Backend Container Domain URL $(backURL)'
+                - task: CmdLine@2
+                  inputs:
+                    script: |
+                      docker stop $(backContainerName)
+                      docker rm $(backContainerName)
+                      docker pull $(dockerHubAccount)/$(backRepository):$(backTag)
+                      docker run $(dockerRunOptions) --name $(backContainerName) -p $(backServerPort):3001 $(backRepository):$(backTag)
+                      echo '### Backend container started:'
+                      echo '### Check Docker Backend Container Domain URL $(backURL)'
 
 ############
 # Frontend #
@@ -106,18 +109,20 @@ stages:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    echo '### Starting CD process'
-                    docker stop $(frontContainerName)
-                    docker rm -f $(frontContainerName)
-                    docker pull $(frontRepository):$(frontTag)
-                    docker run $(dockerRunOptions) --name $(frontContainerName) -p $(frontServerPort):80 $(frontRepository):$(frontTag)
-                    echo '### Frontend container started:'
-                    echo '### Currently available and running containers'
-                    docker ps -a
-                    echo '### Removing all unused images'
-                    docker image prune -a -f
-                    echo '### Listing all available docker images'
-                    docker images -a
-                    echo '### Check Docker Frontend Container Domain URL $(frontURL)'
-                    echo '### Done CD process'
+                - task: CmdLine@2
+                  inputs:
+                    script: |
+                      echo '### Starting CD process'
+                      docker stop $(frontContainerName)
+                      docker rm -f $(frontContainerName)
+                      docker pull $(frontRepository):$(frontTag)
+                      docker run $(dockerRunOptions) --name $(frontContainerName) -p $(frontServerPort):80 $(frontRepository):$(frontTag)
+                      echo '### Frontend container started:'
+                      echo '### Currently available and running containers'
+                      docker ps -a
+                      echo '### Removing all unused images'
+                      docker image prune -a -f
+                      echo '### Listing all available docker images'
+                      docker images -a
+                      echo '### Check Docker Frontend Container Domain URL $(frontURL)'
+                      echo '### Done CD process'
