@@ -51,7 +51,7 @@ stages:
         steps:
           - task: Docker@2
             inputs:
-              containerRegistry: '$(containerRegistry)'
+              containerRegistry: 'docker_hub_registry'
               repository: '$(backRepository)'
               command: 'buildAndPush'
               Dockerfile: '$(backDockerfile)'
@@ -59,10 +59,10 @@ stages:
 
           - task: Docker@2
             inputs:
-              containerRegistry: $(containerRegistry)
-              repository: $(frontRepository):$(frontTag)
+              containerRegistry: 'docker_hub_registry'
+              repository: '$(frontRepository):$(frontTag)'
               command: 'buildAndPush'
-              Dockerfile: $(frontDockerfile)
+              Dockerfile: '$(frontDockerfile)'
               tags: '$(frontTag)'
 
 ########################
