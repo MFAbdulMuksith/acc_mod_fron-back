@@ -23,7 +23,7 @@ variables:
   backRepository: 'abdmuksith/backend_azure_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
-  selfHostedAgent: 'my_azure_vm_agent' 
+  selfHostedAgent: 'production_ubuntu_server' 
   frontServerPort: '8080'
   backServerPort: '3001'
   frontDockerfile: 'frontend-acc/Dockerfile'
@@ -36,6 +36,9 @@ variables:
   backContainerName: 'acc_backend_container'
   dockerRunOptions: '-itd'
 
+##########################################################
+# Azure DevOps Build and Push to Docker Hub registory CI #
+##########################################################
 
 stages:
   - stage: BuildAndPush
@@ -62,11 +65,21 @@ stages:
               Dockerfile: $(frontDockerfile)
               tags: '$(frontTag)'
 
+########################
+# Self-hosted Agent CD #
+########################
+
   - stage: PullAndRunDockerImages
     displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
       name: $(selfHostedAgent)
     jobs:
+
+###########
+# backend #
+###########
+
+
       - deployment: DeployBackend
         environment: $(environment)
         strategy:
@@ -81,9 +94,14 @@ stages:
                     echo '### Backend container started:'
                     echo '### Check Docker Backend Container Domain URL $(backURL)'
 
+############
+# Frontend #
+############
+
+
       - deployment: DeployFrontend
         environment: $(environment)
-        dependsOn:: DeployBackend
+        dependsOn: DeployBackend
         strategy:
           runOnce:
             deploy:
