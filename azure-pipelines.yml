@@ -17,25 +17,23 @@ variables:
   # containerRegistry: 'docker_registry_service_connection'
   # dockerHubAccount: 'abdmuksith'
   # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3pvfi"
-  # frontImage: 'frontend_azure_pipeline'
-  # backImage: 'backend_azure_pipeline'
-  # dockerComposeFile: './docker-compose.image.yaml'
-  frontRepository: 'abdmuksith/frontend_azure_pipeline'
-  backRepository: 'abdmuksith/backend_azure_pipeline'
+  # dockerCompose: './docker-compose.image.yaml'
+  frontImage: 'abdmuksith/frontend_azure_pipeline'
+  backImage: 'abdmuksith/backend_azure_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
   selfHostedAgent: 'production_ubuntu_server' 
-  frontServerPort: '8080'
-  backServerPort: '3001'
+  frontPort: '8080'
+  backPort: '3001'
   frontDockerfile: 'frontend-acc/Dockerfile'
   backDockerfile: 'backend-acc/Dockerfile'
   frontURL: 'https://accounts.front.opsdemo.xyz/'
   backURL: 'https://accounts.back.opsdemo.xyz/'
-  frontTag: 'front$(Build.BuildId)'
-  backTag: 'back$(Build.BuildId)'
-  frontContainerName: 'acc_frontend_container'
-  backContainerName: 'acc_backend_container'
-  dockerRunOptions: '-itd'
+  frontTag: 'front-$(Build.BuildId)'
+  backTag: 'back-$(Build.BuildId)'
+  frontContainerName: 'acc_prod_frontend_container'
+  backContainerName: 'acc_Prod_backend_container'
+  RunOptions: '-itd'
 
 ##########################################################
 # Azure DevOps Build and Push to Docker Hub registory CI #
@@ -53,7 +51,7 @@ stages:
           - task: Docker@2
             inputs:
               containerRegistry: 'docker_hub_registry'
-              repository: '$(backRepository)'
+              repository: '$(backImage)'
               command: 'buildAndPush'
               Dockerfile: '$(backDockerfile)'
               tags: '$(backTag)'
@@ -61,7 +59,7 @@ stages:
           - task: Docker@2
             inputs:
               containerRegistry: 'docker_hub_registry'
-              repository: '$(frontRepository)'
+              repository: '$(frontImage)'
               command: 'buildAndPush'
               Dockerfile: '$(frontDockerfile)'
               tags: '$(frontTag)'
@@ -90,12 +88,24 @@ stages:
                 - task: CmdLine@2
                   inputs:
                     script: |
+                      echo '### Starting CD process'  # Print a message indicating the start of the CD process
+                      
+                      # Stop the existing backend container
                       docker stop $(backContainerName)
+                      
+                      # Remove the existing backend container
                       docker rm $(backContainerName)
-                      docker pull $(dockerHubAccount)/$(backRepository):$(backTag)
-                      docker run $(dockerRunOptions) --name $(backContainerName) -p $(backServerPort):3001 $(backRepository):$(backTag)
-                      echo '### Backend container started:'
-                      echo '### Check Docker Backend Container Domain URL $(backURL)'
+                      
+                      # Pull the latest version of the backend image from the repository
+                      docker pull $(backImage):$(backTag)
+                      
+                      # Run the updated backend container with specified options and configurations
+                      docker run $(RunOptions) --name $(backContainerName) -p $(backPort):3001 $(backImage):$(backTag)
+                      
+                      echo '### Backend container started:'  # Print a message indicating the backend container has started
+                      
+                      # Print a message to check the URL of the Docker Backend Container Domain
+                      echo "### Check Docker Backend Container Domain URL $(backURL)"
 
 ############
 # Frontend #
@@ -103,8 +113,8 @@ stages:
 
 
       - deployment: DeployFrontend
-        environment: $(environment)
         dependsOn: DeployBackend
+        environment: $(environment)
         strategy:
           runOnce:
             deploy:
@@ -112,17 +122,25 @@ stages:
                 - task: CmdLine@2
                   inputs:
                     script: |
-                      echo '### Starting CD process'
-                      docker stop $(frontContainerName)
-                      docker rm -f $(frontContainerName)
-                      docker pull $(frontRepository):$(frontTag)
-                      docker run $(dockerRunOptions) --name $(frontContainerName) -p $(frontServerPort):80 $(frontRepository):$(frontTag)
-                      echo '### Frontend container started:'
+                      docker stop $(frontContainerName)  # Stop the existing frontend container
+                      docker rm -f $(frontContainerName)  # Forcefully remove the existing frontend container
+                      docker pull $(frontImage):$(frontTag)  # Pull the latest version of the frontend image from the repository
+                      docker run $(RunOptions) --name $(frontContainerName) -p $(frontPort):80 $(frontImage):$(frontTag)  # Run the updated frontend container with specified options and configurations
+                      echo '### Frontend container started:'  # Print a message indicating the frontend container has started
+                      
+                      # Print a message indicating the currently available and running containers
                       echo '### Currently available and running containers'
                       docker ps -a
+                      
+                      # Remove all unused images to free up disk space
                       echo '### Removing all unused images'
                       docker image prune -a -f
+                      
+                      # List all available docker images
                       echo '### Listing all available docker images'
                       docker images -a
+                      
+                      # Print a message to check the URL of the Docker Frontend Container Domain
                       echo '### Check Docker Frontend Container Domain URL $(frontURL)'
-                      echo '### Done CD process'
+                      
+                      echo '### Done CD process'  # Print a message indicating the completion of the CD process
