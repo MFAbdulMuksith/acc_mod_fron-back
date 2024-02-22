@@ -18,8 +18,8 @@ variables:
   # dockerHubAccount: 'abdmuksith'
   # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3pvfi"
   # dockerCompose: './docker-compose.image.yaml'
-  frontImage: 'abdmuksith/frontend_azure_pipeline'
-  backImage: 'abdmuksith/backend_azure_pipeline'
+  frontImage: 'abdmuksith/frontImage_from_pipeline'
+  backImage: 'abdmuksith/backImage_from_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
   selfHosted: 'production_ubuntu_server' 
