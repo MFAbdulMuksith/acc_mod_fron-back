@@ -22,7 +22,7 @@ variables:
   backImage: 'abdmuksith/backend_azure_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
-  selfHostedAgent: 'production_ubuntu_server' 
+  selfHosted: 'production_ubuntu_server' 
   frontPort: '8080'
   backPort: '3001'
   frontDockerfile: 'frontend-acc/Dockerfile'
@@ -31,9 +31,11 @@ variables:
   backURL: 'https://accounts.back.opsdemo.xyz/'
   frontTag: 'front-$(Build.BuildId)'
   backTag: 'back-$(Build.BuildId)'
-  frontContainerName: 'acc_prod_frontend_container'
-  backContainerName: 'acc_Prod_backend_container'
+  frontContainer: 'acc_prod_frontend_container'
+  backContainer: 'acc_Prod_backend_container'
   RunOptions: '-itd'
+  frontcontPort: "80"
+  backcontPort: "3001"
 
 ##########################################################
 # Azure DevOps Build and Push to Docker Hub registory CI #
@@ -71,7 +73,7 @@ stages:
   - stage: PullAndRunDockerImages
     displayName: 'Pull and Run Docker Images on Self-hosted Agent'
     pool:
-      name: $(selfHostedAgent)
+      name: $(selfHosted)
     jobs:
 
 ###########
@@ -91,16 +93,16 @@ stages:
                       echo '### Starting CD process'  # Print a message indicating the start of the CD process
                       
                       # Stop the existing backend container
-                      docker stop $(backContainerName)
+                      docker stop $(backContainer)
                       
                       # Remove the existing backend container
-                      docker rm $(backContainerName)
+                      docker rm $(backContainer)
                       
                       # Pull the latest version of the backend image from the repository
                       docker pull $(backImage):$(backTag)
                       
                       # Run the updated backend container with specified options and configurations
-                      docker run $(RunOptions) --name $(backContainerName) -p $(backPort):3001 $(backImage):$(backTag)
+                      docker run $(RunOptions) --name $(backContainer) -p $(backPort):$(backcontPort) $(backImage):$(backTag)
                       
                       echo '### Backend container started:'  # Print a message indicating the backend container has started
                       
@@ -122,10 +124,10 @@ stages:
                 - task: CmdLine@2
                   inputs:
                     script: |
-                      docker stop $(frontContainerName)  # Stop the existing frontend container
-                      docker rm -f $(frontContainerName)  # Forcefully remove the existing frontend container
+                      docker stop $(frontContainer)  # Stop the existing frontend container
+                      docker rm -f $(frontContainer)  # Forcefully remove the existing frontend container
                       docker pull $(frontImage):$(frontTag)  # Pull the latest version of the frontend image from the repository
-                      docker run $(RunOptions) --name $(frontContainerName) -p $(frontPort):80 $(frontImage):$(frontTag)  # Run the updated frontend container with specified options and configurations
+                      docker run $(RunOptions) --name $(frontContainer) -p $(frontPort):$(frontcontPort) $(frontImage):$(frontTag)  # Run the updated frontend container with specified options and configurations
                       echo '### Frontend container started:'  # Print a message indicating the frontend container has started
                       
                       # Print a message indicating the currently available and running containers
