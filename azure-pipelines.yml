@@ -14,10 +14,10 @@ variables:
   
   # containerRegistry: 'docker_registry_service_connection'
   # dockerHubAccount: 'abdmuksith'
-  # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3fake"
+  # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx_fake"
   # dockerCompose: './docker-compose.image.yaml'
   name: "$(pipelineName)$(environment)$(Date:yyMMdd)$(Rev:.r)"
-  pipelineName: "Accounts_Modules_Pipeline"
+  pipelineName: "Accounts_Modules"
   frontImage: 'abdmuksith/frontImage_from_pipeline'
   backImage: 'abdmuksith/backImage_from_pipeline'
   azureAgent: 'ubuntu-latest'
