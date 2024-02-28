@@ -1,6 +1,6 @@
 # in This pipeline deploying containers task CmdLine@2 script bash commands
 
-name: Accounts_Modules_$(Date:yyMMdd)$(Rev:r)
+name: Accounts_Modules-$(Date:yyMMdd)-$(Rev:r)
 
 trigger:
   branches:
