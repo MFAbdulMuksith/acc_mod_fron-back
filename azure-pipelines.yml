@@ -16,7 +16,7 @@ variables:
   # dockerHubAccount: 'abdmuksith'
   # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3fake"
   # dockerCompose: './docker-compose.image.yaml'
-  name: "$(pipelineName)-$(environment)-$(Date:yyMMdd)-$(Rev:.r)"
+  name: "$(pipelineName)$(environment)$(Date:yyMMdd)$(Rev:.r)"
   pipelineName: "Accounts_Modules_Pipeline"
   frontImage: 'abdmuksith/frontImage_from_pipeline'
   backImage: 'abdmuksith/backImage_from_pipeline'
