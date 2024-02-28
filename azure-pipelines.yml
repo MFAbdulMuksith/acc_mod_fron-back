@@ -1,9 +1,6 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-# in This pipeline deploying containers with script bash commands
+# in This pipeline deploying containers task CmdLine@2 script bash commands
 
-name: 'Accounts Modules Production Pipeline'
+name: '$(name)'
 
 trigger:
   branches:
@@ -14,17 +11,20 @@ resources:
   - repo: self
 
 variables:
+  
   # containerRegistry: 'docker_registry_service_connection'
   # dockerHubAccount: 'abdmuksith'
   # dockerAccessToken: "toxvkh55cgqoefdixja5gbefkrm2ebd5im6auvp6ixj6rrx3pvfi"
   # dockerCompose: './docker-compose.image.yaml'
+  name: "$(pipelineName)-$(environment)-$(Date:yyyyMMdd)-$(Time:HHmmss)-$(Rev:.r)"
+  pipelineName: "Accounts_Modules_Pipeline"
   frontImage: 'abdmuksith/frontImage_from_pipeline'
   backImage: 'abdmuksith/backImage_from_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
   selfHosted: 'production_ubuntu_server' 
-  frontPort: '8080'
-  backPort: '3001'
+  frontHostPort: '8080'
+  backHostPort: '3001'
   frontDockerfile: 'frontend-acc/Dockerfile'
   backDockerfile: 'backend-acc/Dockerfile'
   frontURL: 'https://accounts.front.opsdemo.xyz/'
@@ -91,21 +91,15 @@ stages:
                   inputs:
                     script: |
                       echo '### Starting CD process'  # Print a message indicating the start of the CD process
-                      
                       # Stop the existing backend container
                       docker stop $(backContainer)
-                      
                       # Remove the existing backend container
                       docker rm $(backContainer)
-                      
                       # Pull the latest version of the backend image from the repository
                       docker pull $(backImage):$(backTag)
-                      
                       # Run the updated backend container with specified options and configurations
-                      docker run $(RunOptions) --name $(backContainer) -p $(backPort):$(backcontPort) $(backImage):$(backTag)
-                      
+                      docker run $(RunOptions) --name $(backContainer) -p $(backHostPort):$(backcontPort) $(backImage):$(backTag)
                       echo '### Backend container started:'  # Print a message indicating the backend container has started
-                      
                       # Print a message to check the URL of the Docker Backend Container Domain
                       echo "### Check Docker Backend Container Domain URL $(backURL)"
 
@@ -127,22 +121,17 @@ stages:
                       docker stop $(frontContainer)  # Stop the existing frontend container
                       docker rm -f $(frontContainer)  # Forcefully remove the existing frontend container
                       docker pull $(frontImage):$(frontTag)  # Pull the latest version of the frontend image from the repository
-                      docker run $(RunOptions) --name $(frontContainer) -p $(frontPort):$(frontcontPort) $(frontImage):$(frontTag)  # Run the updated frontend container with specified options and configurations
+                      docker run $(RunOptions) --name $(frontContainer) -p $(frontHostPort):$(frontcontPort) $(frontImage):$(frontTag)  # Run the updated frontend container with specified options and configurations
                       echo '### Frontend container started:'  # Print a message indicating the frontend container has started
-                      
                       # Print a message indicating the currently available and running containers
                       echo '### Currently available and running containers'
                       docker ps -a
-                      
                       # Remove all unused images to free up disk space
                       echo '### Removing all unused images'
                       docker image prune -a -f
-                      
                       # List all available docker images
                       echo '### Listing all available docker images'
                       docker images -a
-                      
                       # Print a message to check the URL of the Docker Frontend Container Domain
                       echo '### Check Docker Frontend Container Domain URL $(frontURL)'
-                      
                       echo '### Done CD process'  # Print a message indicating the completion of the CD process
