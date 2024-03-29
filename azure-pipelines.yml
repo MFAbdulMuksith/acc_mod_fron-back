@@ -22,7 +22,7 @@ variables:
   backImage: 'abdmuksith/backImage_from_pipeline'
   azureAgent: 'ubuntu-latest'
   environment: 'production'
-  selfHosted: 'production_ubuntu_server' 
+  selfHosted: 'abduls-ubuntu-server' 
   frontHostPort: '8080'
   backHostPort: '3001'
   frontDockerfile: 'frontend-acc/Dockerfile'
